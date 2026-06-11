@@ -41,7 +41,7 @@ jobs:
       - name: Optimize Gradle Properties for CI
         run: |
           # Set safe memory limits and reduce workers/parallelism for the 2-core CI runner (prevents OOM daemon fallback)
-          sed -i 's/org.gradle.jvmargs=-Xmx4g/org.gradle.jvmargs=-Xmx2048m/g' gradle.properties
+          sed -i 's/org.gradle.jvmargs=-Xmx4g -Dfile.encoding=UTF-8/org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8/g' gradle.properties
           sed -i 's/org.gradle.workers.max=4/org.gradle.workers.max=2/g' gradle.properties
           sed -i 's/org.gradle.parallel=true/org.gradle.parallel=false/g' gradle.properties
           
@@ -50,7 +50,7 @@ jobs:
           echo "kotlin.compiler.execution.strategy=daemon" >> gradle.properties
           echo "kotlin.daemon.jvmopts=-Xmx1536m" >> gradle.properties
           echo "kotlin.daemon.useFallback=false" >> gradle.properties
-          echo "ksp.run.in.process=false" >> gradle.properties
+          echo "ksp.run.in.process=true" >> gradle.properties
           
           # Disable caching and configuration-cache for CI safety
           echo "org.gradle.configuration-cache=false" >> gradle.properties
