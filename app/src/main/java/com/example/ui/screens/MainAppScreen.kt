@@ -2,6 +2,10 @@ package com.example.ui.screens
 
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.*
@@ -337,89 +341,6 @@ fun CreateReceiptTab(
                         leadingIcon = Icons.Default.School,
                         modifier = Modifier.fillMaxWidth()
                     )
-
-                    // Card Category Selector
-                    val currentCategory by viewModel.category.collectAsStateWithLifecycle()
-                    val categoriesList by viewModel.allCategories.collectAsStateWithLifecycle()
-                    Column(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = "রিসিট ক্যাটাগরি (RECEIPT CATEGORY)",
-                                fontSize = 10.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color(0xFF94A3B8),
-                                letterSpacing = 1.sp,
-                                modifier = Modifier.padding(start = 2.dp)
-                            )
-                            Text(
-                                text = "ক্যাটাগরি সমাধান ⚙️",
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color(0xFF4F46E5),
-                                modifier = Modifier
-                                    .clickable { showCategoryDialog = true }
-                                    .padding(horizontal = 4.dp, vertical = 2.dp)
-                            )
-                        }
-
-                        if (categoriesList.isEmpty()) {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clip(RoundedCornerShape(14.dp))
-                                    .background(Color(0xFFF1F5F9))
-                                    .clickable { showCategoryDialog = true }
-                                    .padding(vertical = 12.dp, horizontal = 16.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = "কোনো ক্যাটাগরি নেই। তৈরি করতে এখানে ক্লিক করুন (+)",
-                                    fontSize = 11.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color(0xFF64748B)
-                                )
-                            }
-                        } else {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .horizontalScroll(rememberScrollState())
-                                    .padding(vertical = 4.dp),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                categoriesList.forEach { catEntity ->
-                                    val cat = catEntity.name
-                                    val isSelected = currentCategory == cat
-                                    Box(
-                                        modifier = Modifier
-                                            .clip(RoundedCornerShape(14.dp))
-                                            .background(if (isSelected) Color(0xFFEEF2FF) else Color(0xFFF1F5F9))
-                                            .border(
-                                                width = 1.dp,
-                                                color = if (isSelected) Color(0xFF4F46E5) else Color(0xFFE2E8F0),
-                                                shape = RoundedCornerShape(14.dp)
-                                            )
-                                            .clickable { viewModel.setCategory(cat) }
-                                            .padding(horizontal = 14.dp, vertical = 9.dp)
-                                    ) {
-                                        Text(
-                                            text = cat,
-                                            fontSize = 12.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            color = if (isSelected) Color(0xFF4F46E5) else Color(0xFF64748B)
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                    }
 
                     // Date selector prefilled
                     val readableDate = SimpleDateFormat("dd MMMM, yyyy", Locale.getDefault()).format(Date(purchasedDate))
@@ -814,112 +735,7 @@ fun HistoryReceiptsTab(
             }
         )
 
-        // Category-wise statistical dashboard panel
-        val totalAmountAll = remember(filteredReceipts) { filteredReceipts.sumOf { it.totalAmount } }
-        val totalReceiptsCount = remember(filteredReceipts) { filteredReceipts.size }
 
-        val categoryStats = remember(filteredReceipts) {
-            val statsMap = mutableMapOf<String, Pair<Double, Int>>()
-            filteredReceipts.forEach { r ->
-                val cat = r.category.trim().ifBlank { "General" }
-                val existing = statsMap[cat] ?: Pair(0.0, 0)
-                statsMap[cat] = Pair(existing.first + r.totalAmount, existing.second + 1)
-            }
-            statsMap.filter { it.value.second > 0 }
-        }
-
-        Card(
-            colors = CardDefaults.cardColors(containerColor = Color.White),
-            shape = RoundedCornerShape(24.dp),
-            border = BorderStroke(1.dp, Color(0xFFE2E8F0)),
-            modifier = Modifier
-                .fillMaxWidth()
-                .shadow(1.dp, shape = RoundedCornerShape(24.dp))
-        ) {
-            Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column {
-                        Text(
-                            text = "ক্যাটাগরি ভিত্তিক মোট সংগ্রহ",
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 11.sp,
-                            color = Color(0xFF94A3B8)
-                        )
-                        val currencySym = if (filteredReceipts.isNotEmpty()) filteredReceipts.first().currencySymbol else "৳"
-                        Text(
-                            text = "${currencySym}${String.format("%,.2f", totalAmountAll)}",
-                            fontWeight = FontWeight.Black,
-                            fontSize = 20.sp,
-                            color = Color(0xFF1E293B)
-                        )
-                    }
-                    Box(
-                        modifier = Modifier
-                            .background(Color(0xFFEEF2FF), CircleShape)
-                            .padding(horizontal = 10.dp, vertical = 6.dp)
-                    ) {
-                        Text(
-                            text = "মোট রিসিট: ${totalReceiptsCount}টি",
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 11.sp,
-                            color = Color(0xFF4F46E5)
-                        )
-                    }
-                }
-
-                HorizontalDivider(color = Color(0xFFF1F5F9))
-
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .horizontalScroll(rememberScrollState()),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    categoryStats.forEach { (catName, pair) ->
-                        val (amount, count) = pair
-                        val cleanName = catName
-                        
-                        Box(
-                            modifier = Modifier
-                                .background(Color(0xFFF8FAFC), RoundedCornerShape(16.dp))
-                                .border(1.dp, Color(0xFFE2E8F0), RoundedCornerShape(16.dp))
-                                .padding(12.dp)
-                                .width(125.dp)
-                        ) {
-                            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                                Text(
-                                    text = cleanName.uppercase(),
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 10.sp,
-                                    color = Color(30, 41, 59),
-                                    maxLines = 1
-                                )
-                                val currencySym = if (filteredReceipts.isNotEmpty()) filteredReceipts.first().currencySymbol else "৳"
-                                Text(
-                                    text = "${currencySym}${String.format("%,.0f", amount)}",
-                                    fontWeight = FontWeight.Black,
-                                    fontSize = 15.sp,
-                                    color = Color(0xFF4F46E5)
-                                )
-                                Text(
-                                    text = "${count}টি রিসিট",
-                                    fontSize = 10.sp,
-                                    color = Color(148, 163, 184),
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-        }
 
         if (filteredReceipts.isEmpty()) {
             Box(
@@ -1214,6 +1030,62 @@ fun CompanySettingsTab(
                         hintText = "CS",
                         modifier = Modifier.fillMaxWidth()
                     )
+
+                    val context = LocalContext.current
+                    var logoFileExists by remember { mutableStateOf(context.filesDir.resolve("custom_logo.png").exists()) }
+                    val logoPickerLauncher = rememberLauncherForActivityResult(
+                        contract = ActivityResultContracts.GetContent()
+                    ) { uri ->
+                        if (uri != null) {
+                            try {
+                                context.contentResolver.openInputStream(uri)?.use { inputStream ->
+                                    context.filesDir.resolve("custom_logo.png").outputStream().use { outputStream ->
+                                        inputStream.copyTo(outputStream)
+                                    }
+                                }
+                                logoFileExists = true
+                                Toast.makeText(context, "লোগো সফলভাবে আপলোড হয়েছে!", Toast.LENGTH_SHORT).show()
+                            } catch (e: Exception) {
+                                e.printStackTrace()
+                                Toast.makeText(context, "লোগো আপলোড ব্যর্থ হয়েছে!", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    }
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Button(
+                            onClick = { logoPickerLauncher.launch("image/*") },
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4F46E5)),
+                            modifier = Modifier.weight(1f).height(48.dp),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Text("লোগো আপলোড করুন 📁", color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        }
+
+                        if (logoFileExists) {
+                            OutlinedButton(
+                                onClick = {
+                                    try {
+                                        context.filesDir.resolve("custom_logo.png").delete()
+                                        logoFileExists = false
+                                        Toast.makeText(context, "লোগো ডিলিট করা হয়েছে!", Toast.LENGTH_SHORT).show()
+                                    } catch (e: Exception) {
+                                        e.printStackTrace()
+                                    }
+                                },
+                                modifier = Modifier.weight(1f).height(48.dp),
+                                shape = RoundedCornerShape(12.dp),
+                                border = BorderStroke(1.dp, Color(0xFFEF4444)),
+                                colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFEF4444))
+                            ) {
+                                Text("লোগো ডিলিট করুন 🗑️", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            }
+                        }
+                    }
 
                     Text(
                         text = "লোগো আইকন নির্বাচন করুন",
@@ -1548,23 +1420,15 @@ fun ReceiptJaggedContainer(
                     return Outline.Generic(path)
                 }
             })
-            .background(Color(0xFFFFFFF2)) // Cream physical thermal paper tint
-            .padding(top = toothHeight + 8.dp, bottom = toothHeight + 8.dp)
+            .background(Color.White)
+            .padding(top = toothHeight + 6.dp, bottom = toothHeight + 6.dp)
             .border(BorderStroke(1.dp, Color(0xFFE2E8F0)))
     ) {
         Box(modifier = Modifier.fillMaxWidth()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(4.dp)
-                    .background(Color(0xFF6366F1))
-                    .align(Alignment.TopCenter)
-            )
-
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 10.dp)
+                    .padding(top = 4.dp)
                     .padding(horizontal = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(4.dp),
                 content = content
@@ -1742,6 +1606,19 @@ fun ReceiptPreviewDialog(
                             .fillMaxWidth()
                             .wrapContentHeight()
                     ) {
+                        val logoFile = remember { context.filesDir.resolve("custom_logo.png") }
+                        val customLogoBitmap = remember(logoFile) {
+                            if (logoFile.exists()) {
+                                try {
+                                    android.graphics.BitmapFactory.decodeFile(logoFile.absolutePath)?.asImageBitmap()
+                                } catch (e: Exception) {
+                                    null
+                                }
+                            } else {
+                                null
+                            }
+                        }
+
                         ReceiptJaggedContainer(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -1749,63 +1626,38 @@ fun ReceiptPreviewDialog(
                         ) {
                         Spacer(modifier = Modifier.height(4.dp))
                         
-                        // Logo Circle Header
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.Center,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Box(
+                        // Logo display
+                        if (customLogoBitmap != null) {
+                            Image(
+                                bitmap = customLogoBitmap,
+                                contentDescription = "Logo",
                                 modifier = Modifier
-                                    .size(38.dp)
-                                    .background(Color(45, 45, 45), CircleShape),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    imageVector = chosenLogoIcon,
-                                    contentDescription = null,
-                                    tint = Color.White,
-                                    modifier = Modifier.size(22.dp)
-                                )
-                            }
-                            Spacer(modifier = Modifier.width(10.dp))
+                                    .height(55.dp)
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 12.dp),
+                                contentScale = androidx.compose.ui.layout.ContentScale.Fit
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                        } else {
                             Text(
                                 text = receipt.logoText,
                                 fontFamily = FontFamily.Monospace,
-                                fontWeight = FontWeight.Black,
-                                fontSize = 22.sp,
-                                color = Color(30, 30, 30)
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 20.sp,
+                                color = Color(30, 30, 30),
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.fillMaxWidth()
                             )
+                            Spacer(modifier = Modifier.height(4.dp))
                         }
 
-                        Spacer(modifier = Modifier.height(10.dp))
-
-                        // Company info (Monospace Thermal printed vibe - uppercase)
+                        // Company info name ONLY
                         Text(
                             text = receipt.companyName.uppercase(),
                             fontFamily = FontFamily.Monospace,
                             fontWeight = FontWeight.Black,
-                            fontSize = 17.sp,
+                            fontSize = 16.sp,
                             color = Color(30, 30, 30),
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                        
-                        Text(
-                            text = receipt.companyAddress.uppercase(),
-                            fontFamily = FontFamily.Monospace,
-                            fontSize = 11.sp,
-                            color = Color(50, 50, 50),
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.fillMaxWidth(),
-                            lineHeight = 14.sp
-                        )
-
-                        Text(
-                            text = "CONTACT: ${receipt.companyPhone}",
-                            fontFamily = FontFamily.Monospace,
-                            fontSize = 11.sp,
-                            color = Color(50, 50, 50),
                             textAlign = TextAlign.Center,
                             modifier = Modifier.fillMaxWidth()
                         )
@@ -1865,15 +1717,6 @@ fun ReceiptPreviewDialog(
                         
                         Text(
                             text = "PRODUCT/COURSE: ${receipt.productName.uppercase()}",
-                            fontFamily = FontFamily.Monospace,
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(20, 20, 20),
-                            modifier = Modifier.padding(vertical = 2.dp)
-                        )
-
-                        Text(
-                            text = "CATEGORY: ${receipt.category.uppercase()}",
                             fontFamily = FontFamily.Monospace,
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Bold,
@@ -2047,6 +1890,16 @@ fun ReceiptPreviewDialog(
                             modifier = Modifier.fillMaxWidth()
                         )
 
+                        // Center-aligned Paid Stamp in the vertical flow to prevent any overlap
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 10.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            PaidStamp()
+                        }
+
                         if (receipt.remarks.isNotBlank()) {
                             Text(
                                 text = "NOTE: ${receipt.remarks.uppercase()}",
@@ -2205,13 +2058,6 @@ fun ReceiptPreviewDialog(
 
                         Spacer(modifier = Modifier.height(4.dp))
                     }
-
-                    // Beautiful PAID Rubber Stamp overlaid on the middle-right of the receipt
-                    PaidStamp(
-                        modifier = Modifier
-                            .align(Alignment.BottomEnd)
-                            .padding(end = 24.dp, bottom = 140.dp)
-                    )
                 }
 
                 // Exporter and Sharing Actions
@@ -2493,7 +2339,7 @@ fun CategoryManagerDialog(
 fun PaidStamp(modifier: Modifier = Modifier) {
     Box(
         modifier = modifier
-            .graphicsLayer(rotationZ = -12f)
+            .graphicsLayer(rotationZ = -4f)
             .border(
                 width = 3.dp,
                 color = Color(0xFFEF4444).copy(alpha = 0.85f),
@@ -2501,26 +2347,13 @@ fun PaidStamp(modifier: Modifier = Modifier) {
             )
             .padding(horizontal = 14.dp, vertical = 6.dp)
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Text(
-                text = "পরিশোধিত",
-                color = Color(0xFFEF4444).copy(alpha = 0.85f),
-                fontSize = 10.sp,
-                fontWeight = FontWeight.Black,
-                letterSpacing = 1.sp,
-                fontFamily = FontFamily.Monospace
-            )
-            Text(
-                text = "PAID",
-                color = Color(0xFFEF4444).copy(alpha = 0.85f),
-                fontSize = 18.sp,
-                fontWeight = FontWeight.ExtraBold,
-                letterSpacing = 2.sp,
-                fontFamily = FontFamily.Monospace
-            )
-        }
+        Text(
+            text = "PAID",
+            color = Color(0xFFEF4444).copy(alpha = 0.85f),
+            fontSize = 18.sp,
+            fontWeight = FontWeight.ExtraBold,
+            letterSpacing = 2.sp,
+            fontFamily = FontFamily.Monospace
+        )
     }
 }

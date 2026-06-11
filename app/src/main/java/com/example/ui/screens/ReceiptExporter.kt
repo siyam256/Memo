@@ -44,6 +44,7 @@ object ReceiptExporter {
     // A unified drawing function which outputs to an arbitrary Android Canvas.
     // Handles scaling, layout sizing, and typography.
     private fun drawReceiptContent(
+        context: Context,
         canvas: Canvas,
         width: Float,
         receipt: ReceiptEntity
@@ -54,50 +55,61 @@ object ReceiptExporter {
         }
 
         val padding = 30f
-        var y = 40f
+        var y = 30f
 
-        // Draw background cream paper color
+        // Draw background white paper color
         val bgPaint = Paint().apply {
-            color = android.graphics.Color.parseColor("#FFFFF2")
+            color = android.graphics.Color.WHITE
         }
         canvas.drawRect(0f, 0f, width, canvas.height.toFloat(), bgPaint)
 
         // Decorative borders
         val borderPaint = Paint().apply {
             color = android.graphics.Color.parseColor("#E2E8F0")
-            strokeWidth = 3f
+            strokeWidth = 2f
             style = Paint.Style.STROKE
         }
         canvas.drawRect(8f, 8f, width - 8f, canvas.height.toFloat() - 8f, borderPaint)
 
-        // Draw a top accent line
-        val accentPaint = Paint().apply {
-            color = android.graphics.Color.parseColor("#6366F1")
-        }
-        canvas.drawRect(8f, 8f, width - 8f, 22f, accentPaint)
         y += 15f
 
+        // Draw Custom Logo if it exists, otherwise skip (minimalist)
+        val logoFile = context.filesDir.resolve("custom_logo.png")
+        if (logoFile.exists()) {
+            try {
+                val customLogoBmp = android.graphics.BitmapFactory.decodeFile(logoFile.absolutePath)
+                if (customLogoBmp != null) {
+                    val maxW = 100f
+                    val maxH = 50f
+                    val scale = minOf(maxW / customLogoBmp.width, maxH / customLogoBmp.height)
+                    val targetW = customLogoBmp.width * scale
+                    val targetH = customLogoBmp.height * scale
+                    val dstRect = android.graphics.RectF(
+                        (width - targetW) / 2f,
+                        y,
+                        (width + targetW) / 2f,
+                        y + targetH
+                    )
+                    canvas.drawBitmap(customLogoBmp, null, dstRect, paint)
+                    y += targetH + 15f
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+
         // Draw Company Name
-        paint.textSize = 24f
+        paint.textSize = 22f
         paint.typeface = Typeface.create(Typeface.MONOSPACE, Typeface.BOLD)
         paint.textAlign = Paint.Align.CENTER
-        canvas.drawText(receipt.companyName.uppercase(), width / 2, y + 25f, paint)
-        y += 40f
-
-        // Address
-        paint.textSize = 14f
-        paint.typeface = Typeface.create(Typeface.MONOSPACE, Typeface.NORMAL)
-        canvas.drawText(receipt.companyAddress.uppercase(), width / 2, y + 15f, paint)
-        y += 25f
-
-        // Contact
-        canvas.drawText("CONTACT: ${receipt.companyPhone}", width / 2, y + 15f, paint)
-        y += 35f
+        canvas.drawText(receipt.companyName.uppercase(), width / 2, y + 20f, paint)
+        y += 45f
 
         // Divider
         paint.textSize = 14f
-        canvas.drawText("=================================", width / 2, y + 15f, paint)
-        y += 30f
+        paint.typeface = Typeface.create(Typeface.MONOSPACE, Typeface.NORMAL)
+        canvas.drawText("=================================", width / 2, y + 10f, paint)
+        y += 25f
 
         // Meta (No, Date)
         paint.textAlign = Paint.Align.LEFT
@@ -106,19 +118,17 @@ object ReceiptExporter {
         val dateStr = SimpleDateFormat("dd-MMM-yyyy", Locale.getDefault()).format(Date(receipt.purchasedDate))
         paint.textAlign = Paint.Align.RIGHT
         canvas.drawText("DATE: ${dateStr.uppercase()}", width - padding, y + 15f, paint)
-        y += 30f
+        y += 28f
 
         paint.textAlign = Paint.Align.CENTER
         canvas.drawText("---------------------------------", width / 2, y + 15f, paint)
-        y += 25f
+        y += 22f
 
         // Student Info
         paint.textAlign = Paint.Align.LEFT
         canvas.drawText("STUDENT: ${receipt.studentName.uppercase()}", padding, y + 15f, paint)
-        y += 25f
+        y += 22f
         canvas.drawText("COURSE : ${receipt.productName.uppercase()}", padding, y + 15f, paint)
-        y += 25f
-        canvas.drawText("CAT    : ${receipt.category.uppercase()}", padding, y + 15f, paint)
         y += 25f
 
         paint.textAlign = Paint.Align.CENTER
@@ -136,7 +146,7 @@ object ReceiptExporter {
         paint.textAlign = Paint.Align.CENTER
         paint.typeface = Typeface.create(Typeface.MONOSPACE, Typeface.NORMAL)
         canvas.drawText("---------------------------------", width / 2, y + 15f, paint)
-        y += 20f
+        y += 18f
 
         // Items
         val items = ReceiptItem.deserializeList(receipt.itemsJson)
@@ -145,18 +155,18 @@ object ReceiptExporter {
             canvas.drawText(item.name.uppercase(), padding, y + 15f, paint)
             paint.textAlign = Paint.Align.RIGHT
             canvas.drawText("${receipt.currencySymbol}${String.format("%.2f", item.price)}", width - padding, y + 15f, paint)
-            y += 25f
+            y += 22f
         }
 
         canvas.drawText("---------------------------------", width / 2, y + 15f, paint)
-        y += 25f
+        y += 22f
 
         // Subtotal
         paint.textAlign = Paint.Align.LEFT
         canvas.drawText("SUBTOTAL:", padding, y + 15f, paint)
         paint.textAlign = Paint.Align.RIGHT
         canvas.drawText("${receipt.currencySymbol}${String.format("%.2f", receipt.subtotal)}", width - padding, y + 15f, paint)
-        y += 25f
+        y += 22f
 
         // Discount
         if (receipt.discountValue > 0.0) {
@@ -175,11 +185,11 @@ object ReceiptExporter {
             canvas.drawText(discountText, padding, y + 15f, paint)
             paint.textAlign = Paint.Align.RIGHT
             canvas.drawText("-${receipt.currencySymbol}${String.format("%.2f", discountAmt)}", width - padding, y + 15f, paint)
-            y += 25f
+            y += 22f
         }
 
         canvas.drawText("---------------------------------", width / 2, y + 15f, paint)
-        y += 25f
+        y += 22f
 
         // Grand Total
         paint.typeface = Typeface.create(Typeface.MONOSPACE, Typeface.BOLD)
@@ -188,17 +198,15 @@ object ReceiptExporter {
         paint.textAlign = Paint.Align.RIGHT
         canvas.drawText("${receipt.currencySymbol}${String.format("%.2f", receipt.totalAmount)}", width - padding, y + 15f, paint)
 
-        // Draw physical PAID Rubber Stamp on Canvas
+        y += 30f
+
+        // Draw physical PAID Rubber Stamp on Canvas (Centered in dedicated row - NEVER overlapping text)
         canvas.save()
-        val stampX = width - padding - 85f
-        val stampY = y - 90f // Overlapping subtotal/grand total area
-        canvas.translate(stampX, stampY)
-        canvas.rotate(-12f)
+        canvas.translate(width / 2f, y + 25f)
+        canvas.rotate(-4f)
         
-        val stampWidth = 110f
-        val stampHeight = 52f
-        
-        // Draw double line red border
+        val stampWidth = 100f
+        val stampHeight = 42f
         val stampPaint = Paint().apply {
             color = android.graphics.Color.parseColor("#EF4444")
             style = Paint.Style.STROKE
@@ -213,36 +221,29 @@ object ReceiptExporter {
         val innerRectF = android.graphics.RectF(-stampWidth/2f + 4f, -stampHeight/2f + 4f, stampWidth/2f - 4f, stampHeight/2f - 4f)
         canvas.drawRoundRect(innerRectF, 6f, 6f, stampPaint)
 
-        // Draw Stamp Texts
+        // Draw Stamp Text ("PAID" only, no Bengali literal)
         stampPaint.style = Paint.Style.FILL
         stampPaint.textAlign = Paint.Align.CENTER
-        
-        // "পরিশোধিত"
-        stampPaint.textSize = 9f
+        stampPaint.textSize = 18f
         stampPaint.typeface = Typeface.create(Typeface.MONOSPACE, Typeface.BOLD)
-        canvas.drawText("পরিশোধিত", 0f, -4f, stampPaint)
-        
-        // "PAID"
-        stampPaint.textSize = 17f
-        stampPaint.typeface = Typeface.create(Typeface.MONOSPACE, Typeface.BOLD)
-        canvas.drawText("PAID", 0f, 16f, stampPaint)
+        canvas.drawText("PAID", 0f, 6f, stampPaint)
         
         canvas.restore()
-
-        y += 35f
+        y += 65f
 
         paint.textAlign = Paint.Align.CENTER
+        paint.typeface = Typeface.create(Typeface.MONOSPACE, Typeface.NORMAL)
         canvas.drawText("=================================", width / 2, y + 15f, paint)
-        y += 30f
+        y += 25f
 
         if (receipt.remarks.isNotBlank()) {
             paint.textAlign = Paint.Align.LEFT
             paint.typeface = Typeface.create(Typeface.MONOSPACE, Typeface.NORMAL)
             canvas.drawText("NOTE: ${receipt.remarks.uppercase()}", padding, y + 15f, paint)
-            y += 25f
+            y += 22f
             paint.textAlign = Paint.Align.CENTER
             canvas.drawText("---------------------------------", width / 2, y + 15f, paint)
-            y += 25f
+            y += 22f
         }
 
         // Draw QR code and Signature beside each other
@@ -256,7 +257,6 @@ object ReceiptExporter {
         Paid: ${receipt.currencySymbol}${receipt.totalAmount}
         Student: ${receipt.studentName}
         Course: ${receipt.productName}
-        Category: ${receipt.category}
         """.trimIndent()
         
         val qrBitmap = generateQrCodeBitmap(qrText, 180)
@@ -264,8 +264,8 @@ object ReceiptExporter {
             canvas.drawBitmap(qrBitmap, padding + 10f, rowY, paint)
             paint.typeface = Typeface.create(Typeface.MONOSPACE, Typeface.BOLD)
             paint.textAlign = Paint.Align.LEFT
-            paint.textSize = 10f
-            canvas.drawText("SECURE VERIFY QR", padding + 5f, rowY + qrSize + 15f, paint)
+            paint.textSize = 9f
+            canvas.drawText("SECURE VERIFY QR", padding + 5f, rowY + qrSize + 12f, paint)
         }
 
         // Signature Right
@@ -327,10 +327,17 @@ object ReceiptExporter {
         canvas.drawText(receipt.signatureName.uppercase(), width - padding - 75f, rowY + sigHeight + 15f, paint)
 
         paint.typeface = Typeface.create(Typeface.MONOSPACE, Typeface.NORMAL)
+        paint.color = android.graphics.Color.BLACK
+        paint.textSize = 12f
+        paint.textAlign = Paint.Align.CENTER
+        paint.typeface = Typeface.create(Typeface.MONOSPACE, Typeface.BOLD)
+        canvas.drawText(receipt.signatureName.uppercase(), width - padding - 75f, rowY + sigHeight + 15f, paint)
+
+        paint.typeface = Typeface.create(Typeface.MONOSPACE, Typeface.NORMAL)
         paint.textSize = 10f
         canvas.drawText(receipt.signatureDesignation.uppercase(), width - padding - 75f, rowY + sigHeight + 30f, paint)
 
-        y = rowY + sigHeight + 50f
+        y = rowY + sigHeight + 45f
 
         // Thank you notice
         canvas.drawText("=================================", width / 2, y + 10f, paint)
@@ -345,14 +352,13 @@ object ReceiptExporter {
     fun exportReceiptAsPdf(context: Context, receipt: ReceiptEntity) {
         try {
             val pdfDocument = PdfDocument()
-            // Estimate height based on items
             val itemsCount = ReceiptItem.deserializeList(receipt.itemsJson).size
-            val height = 750 + itemsCount * 25 + (if (receipt.remarks.isNotBlank()) 50 else 0)
+            val height = 550 + itemsCount * 22 + (if (receipt.remarks.isNotBlank()) 40 else 0)
             
             val pageInfo = PdfDocument.PageInfo.Builder(480, height, 1).create()
             val page = pdfDocument.startPage(pageInfo)
 
-            drawReceiptContent(page.canvas, 480f, receipt)
+            drawReceiptContent(context, page.canvas, 480f, receipt)
             pdfDocument.finishPage(page)
 
             val fileName = "Receipt_${receipt.receiptNo}.pdf"
@@ -378,13 +384,13 @@ object ReceiptExporter {
     fun exportReceiptAsImage(context: Context, receipt: ReceiptEntity) {
         try {
             val itemsCount = ReceiptItem.deserializeList(receipt.itemsJson).size
-            val height = 750 + itemsCount * 25 + (if (receipt.remarks.isNotBlank()) 50 else 0)
+            val height = 550 + itemsCount * 22 + (if (receipt.remarks.isNotBlank()) 40 else 0)
             val width = 480
 
             val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
             val canvas = Canvas(bitmap)
 
-            drawReceiptContent(canvas, width.toFloat(), receipt)
+            drawReceiptContent(context, canvas, width.toFloat(), receipt)
 
             val fileName = "Receipt_${receipt.receiptNo}.png"
             val mimeType = "image/png"
