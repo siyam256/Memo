@@ -25,6 +25,11 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
 
+      - name: Optimize Gradle Properties for CI
+        run: |
+          # Replace kotlin compiler strategy in-process with daemon on CI to prevent KSP openapi NullPointerException
+          sed -i 's/kotlin.compiler.execution.strategy=in-process/kotlin.compiler.execution.strategy=daemon/g' gradle.properties
+
       - name: Build with Gradle
         run: gradle assembleDebug
 
