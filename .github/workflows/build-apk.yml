@@ -40,26 +40,24 @@ jobs:
 
       - name: Optimize Gradle Properties for CI
         run: |
-          # Set safe memory limits and reduce workers/parallelism for the 2-core CI runner (prevents OOM daemon fallback)
-          sed -i 's/^org.gradle.jvmargs=.*/org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8 -Djava.awt.headless=true/g' gradle.properties
+          # Use ample memory and limit workers for the 2-core CI runner
+          sed -i 's/^org.gradle.jvmargs=.*/org.gradle.jvmargs=-Xmx4g -Dfile.encoding=UTF-8 -Djava.awt.headless=true/g' gradle.properties
           sed -i 's/^org.gradle.workers.max=.*/org.gradle.workers.max=2/g' gradle.properties
           sed -i 's/^org.gradle.parallel=.*/org.gradle.parallel=false/g' gradle.properties
           
-          # Force daemon usage for both Gradle and Kotlin compilation (avoids in-process KSP NPE)
-          echo "org.gradle.daemon=true" >> gradle.properties
-          echo "kotlin.compiler.execution.strategy=daemon" >> gradle.properties
-          echo "kotlin.daemon.jvmopts=-Xmx1536m -Djava.awt.headless=true" >> gradle.properties
-          echo "kotlin.daemon.useFallback=false" >> gradle.properties
-          echo "ksp.run.in.process=false" >> gradle.properties
+          # Force a completely single-process execution to prevent memory issues and daemon thread crashes
+          echo "org.gradle.daemon=false" >> gradle.properties
+          echo "kotlin.compiler.execution.strategy=in-process" >> gradle.properties
+          echo "ksp.run.in.process=true" >> gradle.properties
           
-          # Disable caching and configuration-cache for CI safety
+          # Disable caching and configuration-cache for clean environment build safety
           echo "org.gradle.configuration-cache=false" >> gradle.properties
           echo "org.gradle.caching=false" >> gradle.properties
 
       - name: Build with Gradle
         env:
           GRADLE_OPTS: -Djava.awt.headless=true
-        run: gradle assembleDebug --daemon --no-parallel --max-workers=2 --no-configuration-cache
+        run: gradle assembleDebug --no-daemon --no-parallel --max-workers=2 --no-configuration-cache
 
       - name: Upload Debug APK
         uses: actions/upload-artifact@v4
