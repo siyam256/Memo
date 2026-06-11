@@ -40,21 +40,22 @@ jobs:
 
       - name: Optimize Gradle Properties for CI
         run: |
-          # Set safe memory limits and reduce workers for the 2-core CI runner (prevents OOM daemon fallback)
+          # Set safe memory limits and reduce workers/parallelism for the 2-core CI runner (prevents OOM daemon fallback)
           sed -i 's/org.gradle.jvmargs=-Xmx4g/org.gradle.jvmargs=-Xmx2048m/g' gradle.properties
           sed -i 's/org.gradle.workers.max=4/org.gradle.workers.max=2/g' gradle.properties
+          sed -i 's/org.gradle.parallel=true/org.gradle.parallel=false/g' gradle.properties
           
           # Force daemon usage for both Gradle and Kotlin compilation (avoids in-process KSP NPE)
           echo "org.gradle.daemon=true" >> gradle.properties
           echo "kotlin.compiler.execution.strategy=daemon" >> gradle.properties
-          echo "kotlin.daemon.jvmopts=-Xmx1024m" >> gradle.properties
+          echo "kotlin.daemon.jvmopts=-Xmx1536m" >> gradle.properties
           
           # Disable caching and configuration-cache for CI safety
           echo "org.gradle.configuration-cache=false" >> gradle.properties
           echo "org.gradle.caching=false" >> gradle.properties
 
       - name: Build with Gradle
-        run: gradle assembleDebug --daemon --no-configuration-cache
+        run: gradle assembleDebug --daemon --no-parallel --max-workers=2 --no-configuration-cache
 
       - name: Upload Debug APK
         uses: actions/upload-artifact@v4
