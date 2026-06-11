@@ -37,7 +37,7 @@ jobs:
         run: |
           # Append properties to override local config with robust CI alternatives
           echo "" >> gradle.properties
-          echo "kotlin.compiler.execution.strategy=daemon" >> gradle.properties
+          echo "kotlin.compiler.execution.strategy=in-process" >> gradle.properties
           echo "org.gradle.configuration-cache=false" >> gradle.properties
           echo "org.gradle.caching=false" >> gradle.properties
 
