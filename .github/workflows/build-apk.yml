@@ -45,12 +45,12 @@ jobs:
           sed -i 's/^org.gradle.workers.max=.*/org.gradle.workers.max=2/g' gradle.properties
           sed -i 's/^org.gradle.parallel=.*/org.gradle.parallel=false/g' gradle.properties
           
-          # Set up daemons and in-process KSP to avoid classloader conflicts and NullPointerExceptions
+          # Set up daemons and out-of-process KSP to avoid classloader conflicts and NullPointerExceptions
           echo "org.gradle.daemon=true" >> gradle.properties
           echo "kotlin.compiler.execution.strategy=daemon" >> gradle.properties
           echo "kotlin.daemon.jvmopts=-Xmx1024m -XX:MaxMetaspaceSize=320m -Djava.awt.headless=true" >> gradle.properties
           echo "kotlin.daemon.useFallback=false" >> gradle.properties
-          echo "ksp.run.in.process=true" >> gradle.properties
+          echo "ksp.run.in.process=false" >> gradle.properties
           
           # Disable caching and configuration-cache for clean environment build safety
           echo "org.gradle.configuration-cache=false" >> gradle.properties
