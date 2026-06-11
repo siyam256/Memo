@@ -1,0 +1,6 @@
+{
+  "name": "Receipt Generator",
+  "description": "An offline payment receipt generator with customizable price tables, discount systems, signatures, and company profiles.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

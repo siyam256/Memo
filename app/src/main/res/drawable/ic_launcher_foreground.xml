@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    
+    <!-- Receipt shadow / backing -->
+    <path
+        android:fillColor="#15173c"
+        android:pathData="M33,27h42c2.2,0 4,1.8 4,4v48c0,2.2 -1.8,4 -4,4H33c-2.2,0 -4,-1.8 -4,-4V31C29,28.8 30.8,27 33,27z" />
+
+    <!-- Receipt Paper -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M32,25h42c2.2,0 4,1.8 4,4v48c0,2.2 -1.8,4 -4,4H32c-2.2,0 -4,-1.8 -4,-4V29C28,26.8 29.8,25 32,25z" />
+
+    <!-- Receipt details lines -->
+    <!-- Top brand banner in indigo -->
+    <path
+        android:fillColor="#4F46E5"
+        android:pathData="M34,31h38v4H34z" />
+
+    <!-- Meta date/no line -->
+    <path
+        android:fillColor="#94A3B8"
+        android:pathData="M34,40h12v2H34z M58,40h14v2H58z" />
+
+    <!-- Item lines -->
+    <path
+        android:fillColor="#334155"
+        android:pathData="M34,47h22v2H34z" />
+    <path
+        android:fillColor="#334155"
+        android:pathData="M64,47h8v2H64z" />
+
+    <path
+        android:fillColor="#334155"
+        android:pathData="M34,53h26v2H34z" />
+    <path
+        android:fillColor="#334155"
+        android:pathData="M64,53h8v2H64z" />
+
+    <path
+        android:fillColor="#334155"
+        android:pathData="M34,59h18v2H34z" />
+    <path
+        android:fillColor="#334155"
+        android:pathData="M64,59h8v2H64z" />
+
+    <!-- Total divider line -->
+    <path
+        android:fillColor="#CBD5E1"
+        android:pathData="M34,65h38v1H34z" />
+
+    <!-- Grand Total Highlight -->
+    <path
+        android:fillColor="#10B981"
+        android:pathData="M34,70h14v3H34z M60,70h12v3H60z" />
+
+    <!-- Stamp Seal "PAID" stylized circle + checkmark -->
+    <!-- Circular stamp outline -->
+    <path
+        android:fillColor="#EF4444"
+        android:pathData="M70,62c4.4,0 8,-3.6 8,-8s-3.6,-8 -8,-8s-8,3.6 -8,8s3.6,8 8,8z M70,48c3.3,0 6,2.7 6,6s-2.7,6 -6,6s-6,-2.7 -6,-6s2.7,-6 6,-6z" />
+    
+    <!-- Stylized Checkmark inside the PAID seal -->
+    <path
+        android:fillColor="#EF4444"
+        android:pathData="M68,53.5l-1.5,1.5l3,3l5,-5l-1.5,-1.5l-3.5,3.5z" />
+
+</vector>
