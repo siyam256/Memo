@@ -5,14 +5,12 @@ on:
     branches: [ "main", "master" ]
   pull_request:
     branches: [ "main", "master" ]
-  workflow_dispatch: # Allows manual trigger from GitHub Actions dashboard
+  workflow_dispatch:
 
 jobs:
   build:
     name: Build Debug APK
     runs-on: ubuntu-latest
-    env:
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
 
     steps:
       - name: Checkout Code
@@ -27,30 +25,22 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
-          validate-wrappers: false
+          validate-wrappers: true
 
-      - name: Make Gradlew Executable and Fix Line Endings
-        run: |
-          tr -d '\r' < gradlew > gradlew.tmp
-          mv gradlew.tmp gradlew
-          chmod +x gradlew
+      - name: Make Gradlew Executable
+        run: chmod +x gradlew
 
       - name: Decode Debug Keystore
         run: |
           if [ -f debug.keystore.base64 ]; then
             tr -d '[:space:]' < debug.keystore.base64 | base64 -d > debug.keystore
-          else
-            echo "Warning: debug.keystore.base64 not found."
           fi
 
-      - name: Create Env File for Secrets Plugin
-        run: cp .env.example .env
-
       - name: Build with Gradle
-        run: ./gradlew assembleDebug --no-daemon --max-workers=2
+        run: ./gradlew assembleDebug
 
       - name: Upload Debug APK
         uses: actions/upload-artifact@v4
         with:
-          name: receipt-generator-debug-apk
+          name: debug-apk
           path: app/build/outputs/apk/debug/app-debug.apk
