@@ -25,7 +25,7 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
-          validate-wrappers: 'false'
+          validate-wrappers: false
 
       - name: Make Gradlew Executable and Fix Line Endings
         run: |
@@ -36,7 +36,7 @@ jobs:
       - name: Decode Debug Keystore
         run: |
           if [ -f debug.keystore.base64 ]; then
-            tr -d '\r\n' < debug.keystore.base64 | base64 -d > debug.keystore
+            tr -d '[:space:]' < debug.keystore.base64 | base64 -d > debug.keystore
           else
             echo "Warning: debug.keystore.base64 not found."
           fi
@@ -44,28 +44,8 @@ jobs:
       - name: Create Env File for Secrets Plugin
         run: cp .env.example .env
 
-      - name: Optimize Gradle Properties for CI
-        run: |
-          # Configure safe memory limits and restrict workers for the 2-core CI runner to avoid OOM
-          sed -i 's/^org.gradle.jvmargs=.*/org.gradle.jvmargs=-Xmx2548m -XX:MaxMetaspaceSize=512m -Dfile.encoding=UTF-8 -Djava.awt.headless=true/g' gradle.properties
-          sed -i 's/^org.gradle.workers.max=.*/org.gradle.workers.max=2/g' gradle.properties
-          sed -i 's/^org.gradle.parallel=.*/org.gradle.parallel=false/g' gradle.properties
-          
-          # Set up daemons and out-of-process KSP to avoid classloader conflicts and NullPointerExceptions
-          echo "org.gradle.daemon=true" >> gradle.properties
-          echo "kotlin.compiler.execution.strategy=daemon" >> gradle.properties
-          echo "kotlin.daemon.jvmopts=-Xmx1024m -XX:MaxMetaspaceSize=320m -Djava.awt.headless=true" >> gradle.properties
-          echo "kotlin.daemon.useFallback=false" >> gradle.properties
-          echo "ksp.run.in.process=false" >> gradle.properties
-          
-          # Disable caching and configuration-cache for clean environment build safety
-          echo "org.gradle.configuration-cache=false" >> gradle.properties
-          echo "org.gradle.caching=false" >> gradle.properties
-
       - name: Build with Gradle
-        env:
-          GRADLE_OPTS: -Djava.awt.headless=true
-        run: ./gradlew assembleDebug --daemon --no-parallel --max-workers=2 --no-configuration-cache
+        run: ./gradlew assembleDebug
 
       - name: Upload Debug APK
         uses: actions/upload-artifact@v4
