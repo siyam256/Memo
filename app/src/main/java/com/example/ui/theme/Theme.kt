@@ -13,34 +13,34 @@ import androidx.compose.ui.platform.LocalContext
 
 private val DarkColorScheme =
   darkColorScheme(
-    primary = EditorialIndigo,
-    secondary = EditorialIndigoDark,
-    tertiary = EditorialIndigoLight,
-    background = Color(0xFF0F172A), // Slate-900 for dark mode
-    surface = Color(0xFF1E293B),    // Slate-800
-    onPrimary = Color.White,
-    onBackground = Color(0xFFF1F5F9),
-    onSurface = Color(0xFFF1F5F9)
+    primary = Color.White,
+    secondary = Color.Gray,
+    tertiary = Color.LightGray,
+    background = Color.Black,
+    surface = Color.Black,
+    onPrimary = Color.Black,
+    onBackground = Color.White,
+    onSurface = Color.White
   )
 
 private val LightColorScheme =
   lightColorScheme(
-    primary = EditorialIndigo,
-    secondary = EditorialIndigoDark,
-    tertiary = EditorialIndigoLight,
-    background = EditorialSlateBg,
-    surface = EditorialWhite,
+    primary = Color.Black,
+    secondary = Color.Gray,
+    tertiary = Color.LightGray,
+    background = Color.White,
+    surface = Color.White,
     onPrimary = Color.White,
-    onSecondary = EditorialTextDark,
-    onBackground = EditorialTextDark,
-    onSurface = EditorialTextDark,
-    outlineVariant = EditorialBorder
+    onSecondary = Color.Black,
+    onBackground = Color.Black,
+    onSurface = Color.Black,
+    outlineVariant = Color.Black
   )
 
 @Composable
 fun MyApplicationTheme(
   darkTheme: Boolean = isSystemInDarkTheme(),
-  dynamicColor: Boolean = false, // Set to false to force our exquisite custom custom theme colors!
+  dynamicColor: Boolean = false, 
   content: @Composable () -> Unit,
 ) {
   val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme

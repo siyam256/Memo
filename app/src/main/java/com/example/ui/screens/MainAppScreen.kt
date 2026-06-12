@@ -289,23 +289,22 @@ fun CreateReceiptTab(
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+            .padding(4.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
         item {
             Card(
                 colors = CardDefaults.cardColors(
-                    containerColor = Color.White
+                    containerColor = MaterialTheme.colorScheme.surface
                 ),
-                shape = RoundedCornerShape(24.dp),
-                border = BorderStroke(1.dp, Color(0xFFE2E8F0)),
-                modifier = Modifier.shadow(2.dp, shape = RoundedCornerShape(24.dp))
+                shape = RectangleShape,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface),
             ) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(20.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                        .padding(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                         Text(
@@ -707,29 +706,25 @@ fun HistoryReceiptsTab(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+            .padding(4.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
         OutlinedTextField(
             value = searchKeyword,
             onValueChange = { searchKeyword = it },
-            placeholder = { Text("আইডি (#TCCxxxxx), শিক্ষার্থী বা কোর্স দিয়ে খুঁজুন...", color = Color(0xFF94A3B8), fontSize = 13.sp) },
-            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = Color(0xFF6366F1), modifier = Modifier.size(20.dp)) },
+            placeholder = { Text("আইডি (#TCCxxxxx), শিক্ষার্থী বা কোর্স দিয়ে খুঁজুন...", fontSize = 11.sp) },
+            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, modifier = Modifier.size(16.dp)) },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
-            shape = RoundedCornerShape(16.dp),
+            shape = RectangleShape,
             colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = Color(0xFFF8FAFC),
-                unfocusedContainerColor = Color(0xFFF8FAFC),
-                focusedBorderColor = Color(0xFF6366F1),
-                unfocusedBorderColor = Color(0xFFE2E8F0),
-                focusedTextColor = Color(0xFF1E293B),
-                unfocusedTextColor = Color(0xFF1E293B)
+                focusedBorderColor = MaterialTheme.colorScheme.onSurface,
+                unfocusedBorderColor = MaterialTheme.colorScheme.onSurface,
             ),
             trailingIcon = {
                 if (searchKeyword.isNotEmpty()) {
                     IconButton(onClick = { searchKeyword = "" }) {
-                        Icon(Icons.Default.Clear, contentDescription = "Clear", tint = Color(0xFF64748B))
+                        Icon(Icons.Default.Clear, contentDescription = "Clear", modifier = Modifier.size(16.dp))
                     }
                 }
             }
@@ -896,13 +891,13 @@ fun CompanySettingsTab(
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+            .padding(4.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
         item {
             Column(
-                modifier = Modifier.padding(bottom = 4.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
+                modifier = Modifier.padding(bottom = 2.dp),
+                verticalArrangement = Arrangement.spacedBy(2.dp)
             ) {
                 Text(
                     text = "কোম্পানি প্রোফাইল এবং সেটিংস",
